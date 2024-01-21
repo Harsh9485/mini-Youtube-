@@ -1,24 +1,25 @@
 // require('dotenv').config({path: './env'})
 
-
-
+import { app } from "./app.js";
 import connectDB from "./db/index.js";
 import dotenv from "dotenv";
 
+dotenv.config({ path: "./env" });
 
-import express  from "express";
+connectDB()
+  .then(() => {
+    app.on("error", (err) => {
+      console.log(`server connection error: ${err}`);
+    });
+    app.listen(process.env.PORT || 3000, () => {
+      console.log(`Connect to server on port ${process.env.PORT}`);
+    });
+  })
+  .catch((error) => {
+    console.log("MongoDB connection error: " + error);
+  });
 
-
-
-dotenv.config({path: './env'});
-
-const app = express();
-
-connectDB();
-
-
-
-
+// This way to connect MongoDB and listen for POST only using index.js file
 
 /*
 ( async () => {
