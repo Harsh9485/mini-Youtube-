@@ -15,10 +15,11 @@ const registerUser = asyncHandler(async (req, res) => {
     console.log("Please enter your name and email");
     throw new ApiError(400, "Please enter all required fields");
   }
-
   // check if user already exists: serche username and email
 
-  const existingUser = User.find({ userName: userName });
+  const existingUser = await User.findOne({
+    $or: [{ userName }, { email }]
+  })
   if (existingUser) {
     throw new ApiError(409, "This user name already exists");
   }
@@ -26,7 +27,7 @@ const registerUser = asyncHandler(async (req, res) => {
   // check for image, check for avatar
 
   const avatarLocalPath = req.files?.avatar[0]?.path;
-  const coverImageLocalPath = req.files?.coverImage?.path;
+  const coverImageLocalPath = req.files?.coverImage[0]?.path;
 
   if (!avatarLocalPath) {
     throw new ApiError(400, "Please upload your avatar");

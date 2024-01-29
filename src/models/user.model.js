@@ -11,39 +11,39 @@ const userSchema = new Schema(
       },
     ],
     userName: {
-      tpye: String,
+      type: String,
       required: true,
       unique: true,
-      lowecase: true,
+      lowercase: true,
       trim: true,
       index: true,
     },
     email: {
-      tpye: String,
+      type: String,
       required: true,
       unique: true,
-      lowecase: true,
+      lowercase: true,
       trim: true,
     },
     fullName: {
-      tpye: String,
+      type: String,
       required: true,
       trim: true,
       index: true,
     },
     avatar: {
-      tpye: String, // cloudinary url
+      type: String, // cloudinary url
       required: true,
     },
     coverImage: {
-      tpye: String, // cloudinary url
+      type: String, // cloudinary url
     },
     password: {
-      tpye: String,
+      type: String,
       required: [true, "password is required"],
     },
     refreshToken: {
-      tpye: String,
+      type: String,
     },
   },
   { timestamps: true }
