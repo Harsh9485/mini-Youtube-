@@ -1,7 +1,7 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.model.js";
-import { uploadOnCloudinary } from "../utils/cloudinary.fileUpload.js";
+import { deleteOnCloudinary, uploadOnCloudinary } from "../utils/cloudinary.fileUpload.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
 import { json } from "express";
@@ -124,8 +124,7 @@ const loginUser = asyncHandler(async (req, res) => {
   if (!password) {
     throw new ApiError(400, "password is required");
   }
-
-  const passworValid = user.isPasswordCorrect(password);
+  const passworValid = await user.isPasswordCorrect(password);
 
   if (!passworValid) {
     throw new ApiError(400, "password incorrect");
@@ -170,6 +169,8 @@ const logoutUser = asyncHandler(async (req, res) => {
     {
       new: true,
     }
+  ).select(
+    "-password -refreshToken"
   );
 
   const options = {
@@ -237,7 +238,6 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
   }
   const userId = req.user?._id;
   const user = await User.findById(userId);
-
   // campar DB password and user current password use {userSchema.methods.isPasswordCorrect()}
   const passworValid = await user.isPasswordCorrect(password);
   if (!passworValid) {
@@ -293,6 +293,7 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
   if (!avatar.url) {
     throw new ApiError(400, "upload avatar failed");
   }
+  console.log("url avatar",avatar.url);
   const user = await User.findByIdAndUpdate(
     req.user._id,
     {
@@ -300,9 +301,9 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
         avatar: avatar.url,
       },
     },
-    { new: true }
   ).select("-password -refreshToken")
-
+  console.log("user avatar",user.avatar);
+  deleteOnCloudinary(user.avatar)
   return res
     .status(200)
     .json(200, user, "avatar updated successfully");
@@ -324,9 +325,8 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
         coverImage: coverImage.url,
       },
     },
-    { new: true }
   ).select("-password -refreshToken")
-  
+  deleteOnCloudinary(user?.coverImage || undefined)
   return res
     .status(200)
     .json(200, user, "avatar updated successfully");
@@ -341,4 +341,5 @@ export {
   getCurrentUser,
   updateAccountDetails,
   updateUserAvatar,
+  updateUserCoverImage,
 };
