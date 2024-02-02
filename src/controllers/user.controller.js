@@ -189,19 +189,19 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   if (!incomingRefreshToken) {
     throw new ApiError(401, "unauthorized request");
   }
+  console.log("incomingRefreshToken: " + incomingRefreshToken);
   const decodedToken = jwt.verify(
     incomingRefreshToken,
     process.env.REFRESH_TOKEN_SECRET
   );
+  console.log("decodedToken", decodedToken);
   if (!decodedToken) {
     throw new ApiError(401, "invalid refresh token");
   }
   const user = await User.findOne({ _id: decodedToken._id });
+  console.log(user);
   if (!user) {
     throw new ApiError(400, "user not exist");
-  }
-  if (decodedToken !== user._id) {
-    throw new ApiError(400, "decoded token not authenticated");
   }
   const { accessToken, refreshToken } =
     await generateAccessAndRefereshToken(user);
