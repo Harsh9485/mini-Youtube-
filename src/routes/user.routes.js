@@ -53,6 +53,16 @@ router.route("/updateUserAvatar").post(
   updateUserAvatar
 );
 
-router.route("/updateUserCoverImage").post(verifyJWT, updateUserCoverImage);
+router.route("/updateUserCoverImage").post(
+  verifyJWT,
+  upload.fields([
+    {
+      name: "coverImage",
+      maxCount: 1,
+    },
+  ]),
+  updateUserCoverImage
+);
+
 
 export default router;
