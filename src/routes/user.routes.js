@@ -42,7 +42,16 @@ router.route("/getCurrentUser").post(verifyJWT, getCurrentUser);
 
 router.route("/updateAccountDetails").post(verifyJWT, updateAccountDetails);
 
-router.route("/updateUserAvatar").post(verifyJWT, updateUserAvatar);
+router.route("/updateUserAvatar").post(
+  verifyJWT,
+  upload.fields([
+    {
+      name: "avatar",
+      maxCount: 1,
+    },
+  ]),
+  updateUserAvatar
+);
 
 router.route("/updateUserCoverImage").post(verifyJWT, updateUserCoverImage);
 

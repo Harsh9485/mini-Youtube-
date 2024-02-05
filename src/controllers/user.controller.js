@@ -1,7 +1,10 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.model.js";
-import { deleteOnCloudinary, uploadOnCloudinary } from "../utils/cloudinary.fileUpload.js";
+import {
+  deleteOnCloudinary,
+  uploadOnCloudinary,
+} from "../utils/cloudinary.fileUpload.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
 import { json } from "express";
@@ -169,9 +172,7 @@ const logoutUser = asyncHandler(async (req, res) => {
     {
       new: true,
     }
-  ).select(
-    "-password -refreshToken"
-  );
+  ).select("-password -refreshToken");
 
   const options = {
     // options object for cookie security because cookies modify in the frontend
@@ -254,7 +255,7 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
 });
 
 const getCurrentUser = asyncHandler(async (req, res) => {
-  return res.status(200).json(200, req.user, "success get user");
+  return res.status(200).json(new ApiResponse(200, req.user, "success get user"));
 });
 
 const updateAccountDetails = asyncHandler(async (req, res) => {
@@ -285,7 +286,7 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
 });
 
 const updateUserAvatar = asyncHandler(async (req, res) => {
-  const avatarLocalPath = req.file?.path;
+  const avatarLocalPath = req.files?.avatar[0].path;
   if (!avatarLocalPath) {
     throw new ApiError(400, "avatar not provided");
   }
@@ -293,24 +294,19 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
   if (!avatar.url) {
     throw new ApiError(400, "upload avatar failed");
   }
-  console.log("url avatar",avatar.url);
-  const user = await User.findByIdAndUpdate(
-    req.user._id,
-    {
-      $set: {
-        avatar: avatar.url,
-      },
+  const user = await User.findByIdAndUpdate(req.user._id, {
+    $set: {
+      avatar: avatar.url,
     },
-  ).select("-password -refreshToken")
-  console.log("user avatar",user.avatar);
-  deleteOnCloudinary(user.avatar)
+  }).select("-password -refreshToken");
+  deleteOnCloudinary(user.avatar);
   return res
     .status(200)
-    .json(200, user, "avatar updated successfully");
+    .json(new ApiResponse(200, user, "avatar updated successfully"));
 });
 
 const updateUserCoverImage = asyncHandler(async (req, res) => {
-  const coverImageLocalPath = req.file?.path;
+  const coverImageLocalPath = req.files?.coverImage[0].path;
   if (!coverImageLocalPath) {
     throw new ApiError(400, "coverImage not provided");
   }
@@ -318,18 +314,81 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
   if (!coverImage.url) {
     throw new ApiError(400, "upload coverImage failed");
   }
-  const user = await User.findByIdAndUpdate(
-    req.user._id,
-    {
-      $set: {
-        coverImage: coverImage.url,
-      },
+  const user = await User.findByIdAndUpdate(req.user._id, {
+    $set: {
+      coverImage: coverImage.url,
     },
-  ).select("-password -refreshToken")
-  deleteOnCloudinary(user?.coverImage || undefined)
+  }).select("-password -refreshToken");
+  deleteOnCloudinary(user?.coverImage);
   return res
     .status(200)
-    .json(200, user, "avatar updated successfully");
+    .json(new ApiResponse(200, user, "avatar updated successfully"));
+});
+
+const getUserChannelProfile = asyncHandler(async (req, res) => {
+  const username = req.params;
+  if (!username?.trim()) {
+    throw new ApiError(400, "username not provided");
+  }
+  const channel = await User.aggregate([
+    {
+      $match: {
+        userName: username?.toLowerCase(),
+      },
+    },
+    {
+      $lookup: {
+        from: "subscriptions", // subscription documentation to add User documentation
+        localField: "_id", // user _id
+        foreignField: "channel", // channel ma user _id - ObjectId ka kita na documant ha vi ta na hi subscriber ho ga
+        as: "subscribers", // sa ra data subscribers ka a jaya ga
+      },
+    },
+    {
+      $lookup: {
+        from: "subscriptions", // subscription documentation to add User documentation
+        localField: "_id", // user _id
+        foreignField: "subscriber", // a user na ki tno ko subscrib ki ya ha subscriber cllection ma ji tna user _id ka dovumant ho ja vi tna channel subscrib kya ha
+        as: "subscribedTo",
+      },
+    },
+    {
+      $addFields: {
+        subscribersCount: {
+          $size: "$subscribers", // ji ta na subscribers documenta ho ga vi ta na channel ka subscriber ki ya ha
+        },
+        channelsSubscribedToCount: {
+          $size: "$subscribedTo", // ji ta na channel documenta ho ga vi ta na channel ka subscriber ki ya ha user na
+        },
+        isSubscribed: {
+          $cond: {
+            if: { $in: [req.user?._id, "$subscribers.subscriber"] }, // user _id ha subscribers object ma is ka matlab user na subscriber  ki ya ha
+            then: true,
+            else: false,
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        fullName: 1,
+        userName: 1,
+        subscribersCount: 1,
+        channelsSubscribedToCount: 1,
+        isSubscribed: 1,
+        email: 1,
+        avatar: 1,
+        coverImage: 1,
+      },
+    },
+  ]);
+  if (!channel?.length) {
+    throw new ApiError(404, "channel not exist");
+  }
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, channel[0], "channel fetched successfully"));
 });
 
 export {
@@ -342,4 +401,5 @@ export {
   updateAccountDetails,
   updateUserAvatar,
   updateUserCoverImage,
+  getUserChannelProfile,
 };

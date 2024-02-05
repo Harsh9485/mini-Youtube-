@@ -25,16 +25,11 @@ const uploadOnCloudinary = async (localFilePath) => {
 
 const deleteOnCloudinary = async (fileUrl) => {
   try {
-    if (fileName === undefined) {
-      return
-    }
     const fileName = fileUrl.split("/").pop().split(".")[0];
-    const response = await cloudinary.uploader.destroy(fileName, {
-      resource_type: "auto", 
-    })
+    const response = await cloudinary.uploader.destroy(fileName)
     return response;
   } catch (error) {
-    return null;
+    console.log(error);
   }
 }
 
