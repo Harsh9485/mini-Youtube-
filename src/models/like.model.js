@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 // Define the like schema
 const likeSchema = new mongoose.Schema(
