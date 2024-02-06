@@ -166,8 +166,8 @@ const logoutUser = asyncHandler(async (req, res) => {
   const loggedUser = await User.findByIdAndUpdate(
     req.user._id,
     {
-      $set: {
-        refreshToken: undefined,
+      $unset: {
+        refreshToken: 1,
       },
     },
     {
@@ -329,7 +329,7 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
 });
 
 const getUserChannelProfile = asyncHandler(async (req, res) => {
-  const username = req.params;
+  const { username } = req.params;
   if (!username?.trim()) {
     throw new ApiError(400, "username not provided");
   }
@@ -398,7 +398,7 @@ const getwatchHistory = asyncHandler(async (req, res) => {
   const user = await User.aggregate([
     {
       $match: {
-        _id: new mongoose.Schema.Types.ObjectId(req.user._id),
+        _id: new mongoose.Types.ObjectId(req.user._id),
       },
     },
     {
@@ -439,7 +439,13 @@ const getwatchHistory = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .json(new ApiResponse(200, user[0].watchHistory, "watchHistory fached"));
+    .json(
+      new ApiResponse(
+        200,
+        user[0].watchHistory,
+        "watchHistory fetched successfully"
+      )
+    );
 });
 
 export {

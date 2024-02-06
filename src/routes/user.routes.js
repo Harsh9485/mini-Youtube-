@@ -2,6 +2,8 @@ import { Router } from "express";
 import {
   changeCurrentPassword,
   getCurrentUser,
+  getUserChannelProfile,
+  getwatchHistory,
   loginUser,
   logoutUser,
   refreshAccessToken,
@@ -34,15 +36,15 @@ router.route("/login").post(loginUser);
 // securet routes
 router.route("/logout").post(verifyJWT, logoutUser);
 
-router.route("/refreshAccessToken").post(refreshAccessToken);
+router.route("/refresh-token").post(refreshAccessToken);
 
-router.route("/changeCurrentPassword").post(verifyJWT, changeCurrentPassword);
+router.route("/change-password").post(verifyJWT, changeCurrentPassword);
 
-router.route("/getCurrentUser").post(verifyJWT, getCurrentUser);
+router.route("/current-user").get(verifyJWT, getCurrentUser);
 
-router.route("/updateAccountDetails").post(verifyJWT, updateAccountDetails);
+router.route("/update-accountDetails").patch(verifyJWT, updateAccountDetails);
 
-router.route("/updateUserAvatar").post(
+router.route("/update-avatar").patch(
   verifyJWT,
   upload.fields([
     {
@@ -53,7 +55,7 @@ router.route("/updateUserAvatar").post(
   updateUserAvatar
 );
 
-router.route("/updateUserCoverImage").post(
+router.route("/update-coverImage").patch(
   verifyJWT,
   upload.fields([
     {
@@ -64,5 +66,8 @@ router.route("/updateUserCoverImage").post(
   updateUserCoverImage
 );
 
+router.route("/channel/:username").get(verifyJWT, getUserChannelProfile);
+
+router.route("/watch-history").get(verifyJWT, getwatchHistory)
 
 export default router;
