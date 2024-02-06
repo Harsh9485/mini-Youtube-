@@ -285,7 +285,7 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
 });
 
 const updateUserAvatar = asyncHandler(async (req, res) => {
-  const avatarLocalPath = req.files?.avatar[0].path;
+  const avatarLocalPath = req.file.path;
   if (!avatarLocalPath) {
     throw new ApiError(400, "avatar not provided");
   }
@@ -305,7 +305,7 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
 });
 
 const updateUserCoverImage = asyncHandler(async (req, res) => {
-  const coverImageLocalPath = req.files?.coverImage[0].path;
+  const coverImageLocalPath = req.file.path;
   if (!coverImageLocalPath) {
     throw new ApiError(400, "coverImage not provided");
   }
