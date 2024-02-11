@@ -48,7 +48,7 @@ const updateTweet = asyncHandler(async (req, res) => {
   if (!content && content?.trim() === "") {
     throw new ApiError(400, "content not provide");
   }
-  const tweet = await Tweet.find({ owner: req.user.id, _id: tweetId });
+  const tweet = await Tweet.findOne({ owner: req.user.id, _id: tweetId });
   if (!tweet) {
     throw new ApiError(400, "aunouther requst");
   }
@@ -73,7 +73,7 @@ const deleteTweet = asyncHandler(async (req, res) => {
   if (!isValidObjectId(tweetId)) {
     throw new ApiError(400, "tweet id invalied");
   }
-  const tweet = await Tweet.find({ owner: req.user.id, _id: tweetId });
+  const tweet = await Tweet.findOne({ owner: req.user.id, _id: tweetId });
   if (!tweet) {
     throw new ApiError(400, "aunouther requst");
   }
