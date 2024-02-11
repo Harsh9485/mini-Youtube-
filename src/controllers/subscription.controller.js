@@ -8,7 +8,8 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 const toggleSubscription = asyncHandler(async (req, res) => {
   const { channelId } = req.params;
   // TODO: toggle subscription
-  if (isValidObjectId(channelId)) {
+  console.log(channelId);
+  if (!isValidObjectId(channelId)) {
     throw new ApiError(400, "Invalid channel ID");
   }
   const isSubscribed = await Subscription.findOne({
@@ -26,13 +27,13 @@ const toggleSubscription = asyncHandler(async (req, res) => {
     }
     return res
       .status(200)
-      .json(new ApiResponse(200, channelsSubscribed, "subscribed"));
+      .json(new ApiResponse(200, channelsSubscribed, "subscribe"));
   }
   const deleteSubscriber = await Subscription.findOneAndDelete(isSubscribed);
   if (!deleteSubscriber) {
     throw new ApiError(500, "error mongoose not delete subscriber");
   }
-  return res.status(200).json(200, deleteSubscriber, "");
+  return res.status(200).json(new ApiResponse(200, deleteSubscriber, "onSubscribe"));
 });
 
 // controller to return subscriber list of a channel
@@ -84,12 +85,12 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
   const channelList = await Subscription.aggregate([
     {
       $match: {
-        subscriber: mongoose.Types.ObjectId(subscriberId),
+        subscriber: new mongoose.Types.ObjectId(subscriberId),
       },
     },
     {
       $lookup: {
-        from: "user",
+        from: "users",
         localField: "channel",
         foreignField: "_id",
         as: "channels",
